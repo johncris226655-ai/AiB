@@ -3,202 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AiB: King of Diamonds</title>
+    <title>AiB: Beauty Contest - System</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; width: 100vw; color: #000; }
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: absolute; background: #000; color: #fff; box-sizing: border-box; padding: 20px; }
-        .active { display: flex; animation: fadeIn 0.5s forwards; }
+        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh; color: #000; transition: background 1s; }
+        #app { width: 100%; height: 100%; position: relative; }
         
-        /* Intro - Pure White */
-        #intro-container { background: #fff; z-index: 9999; }
-        video { width: 90%; max-width: 500px; display: none; }
-        .start-transmission-btn { padding: 20px 40px; font-size: 1.2rem; border: 2px solid #000; background: #fff; color: #000; font-weight: bold; letter-spacing: 3px; cursor: pointer; }
+        /* Intro - Plain White */
+        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9000; position: absolute; }
+        video { width: 90%; max-width: 600px; display: none; border: none; }
+        .start-btn { padding: 20px 40px; font-size: 1.2rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; }
 
-        /* Registration & Forms */
-        #camera-feed { width: 100%; max-width: 280px; border: 2px solid #fff; margin-bottom: 10px; }
-        input { width: 85%; padding: 12px; margin: 5px 0; border: 1px solid #fff; background: #000; color: #fff; font-size: 16px; }
-        #sig-pad { background: #fff; width: 85%; height: 100px; border: 1px solid #fff; touch-action: none; }
-        .btn { background: #000; color: #fff; border: 1px solid #fff; padding: 15px; width: 85%; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
-        .btn:active { background: #fff; color: #000; }
+        /* General Screen Style */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: #000; color: #fff; position: absolute; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active { display: flex; }
 
+        /* Registration UI */
+        #camera-feed { width: 200px; height: 150px; border: 2px solid #fff; object-fit: cover; margin-bottom: 10px; }
+        input { width: 85%; padding: 12px; margin: 5px; border: 1px solid #555; background: #111; color: #fff; font-size: 1rem; }
+        #sig-pad { background: #fff; width: 85%; height: 100px; margin-top: 10px; cursor: crosshair; }
+        
         /* Game UI */
-        #timer { font-size: 4rem; color: red; font-weight: bold; }
-        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; max-height: 200px; overflow-y: scroll; }
-        .num-btn { background: #111; color: #fff; border: 1px solid #fff; padding: 10px; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; width: 90%; }
+        .num-btn { padding: 15px; background: #111; color: #fff; border: 1px solid #fff; font-size: 1.1rem; }
+        .num-btn:active { background: #fff; color: #000; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .btn-action { width: 85%; padding: 15px; background: #fff; color: #000; font-weight: bold; border: none; margin-top: 20px; text-transform: uppercase; cursor: pointer; }
+        
+        /* Cinematic Text */
+        .heavy-text { font-size: 0.8rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+        .id-badge { font-size: 1.5rem; color: #ff0000; font-weight: bold; border: 1px solid #ff0000; padding: 5px 20px; margin: 10px 0; }
+        
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .eliminating { animation: flash 0.2s infinite; background: red !important; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="intro-container" class="screen active" style="background:#fff;">
-        <button class="start-transmission-btn" onclick="startSystem()">START TRANSMISSION</button>
-        <video id="intro-vid" playsinline>
+    <div id="intro-container">
+        <button class="start-btn" id="init-btn" onclick="startSystem()">START TRANSMISSION</button>
+        <video id="main-video" playsinline>
             <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
         </video>
     </div>
 
     <div id="reg-screen" class="screen">
-        <h2 style="letter-spacing:5px;">REGISTRATION</h2>
-        <video id="camera-feed" autoplay playsinline></video>
+        <p class="heavy-text">CITIZEN DATA ACQUISITION</p>
+        <video id="cam" autoplay playsinline></video>
         <canvas id="photo-canvas" style="display:none;"></canvas>
-        <button class="btn" style="width:150px; font-size:10px; padding:5px;" onclick="snap()">CAPTURE</button>
-        <input type="text" id="r-name" placeholder="PANGALAN">
-        <input type="number" id="r-age" placeholder="EDAD">
-        <input type="text" id="r-loc" placeholder="BRGY, CITY, PROVINCE">
+        <button class="btn-action" style="font-size:0.7rem; padding:8px;" onclick="takePhoto()">CAPTURE BIOMETRICS</button>
+        
+        <input type="text" id="p-name" placeholder="FULL NAME">
+        <input type="number" id="p-age" placeholder="AGE">
+        <input type="text" id="p-brgy" placeholder="BARANGAY">
+        <input type="text" id="p-city" placeholder="CITY">
+        <input type="text" id="p-prov" placeholder="PROVINCE">
+        
+        <p style="font-size:10px; margin:15px 0 5px 0;">SIGNATURE AFFIRMATION:</p>
         <canvas id="sig-pad"></canvas>
-        <button class="btn" id="upload-btn" onclick="registerCitizen()">UPLOAD TO CLOUD</button>
-        <div id="post-reg-btns" style="display:none; width:100%; text-align:center;">
-            <button class="btn" onclick="resetReg()">NEXT PLAYER</button>
-            <button class="btn" id="start-game-btn" style="background:red;" onclick="initiateGame()">START GAME</button>
+        
+        <button class="btn-action" onclick="savePlayer()">REGISTER CITIZEN</button>
+        <div id="start-game-box" style="display:none; width:100%; text-align:center;">
+             <button class="btn-action" style="background:red; color:white;" onclick="initGame()">COMMENCE GAME</button>
         </div>
     </div>
 
-    <div id="pass-screen" class="screen">
-        <h1 style="color:red;">PASS THE PHONE</h1>
-        <img id="p-turn-img" style="width:150px; border:2px solid #fff;">
-        <h2 id="p-turn-name"></h2>
-        <p id="p-turn-id"></p>
-        <button class="btn" onclick="startActualTurn()">I AM READY</button>
+    <div id="turn-screen" class="screen">
+        <h1 style="color:red; letter-spacing:10px;">TURN OVER</h1>
+        <div id="turn-info" style="text-align:center;">
+            <img id="turn-img" style="width:180px; border:3px solid #fff; margin:20px 0;">
+            <h2 id="turn-name"></h2>
+            <div class="id-badge" id="turn-id"></div>
+        </div>
+        <button class="btn-action" onclick="showGameGrid()">ENTER SELECTION</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="timer">05:00</div>
-        <p id="current-player-display"></p>
-        <div id="number-grid"></div>
+        <div id="timer" style="font-size:4rem; color:red;">05:00</div>
+        <p id="active-p"></p>
+        <div class="number-grid" id="grid"></div>
     </div>
 </div>
 
-<audio id="success-sound" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3"></audio>
+<audio id="click-sound" src="https://cdn.discordapp.com/attachments/1475066979600699504/1495067226858983656/virtual_vibes-okay-confirmation-379994.mp3?ex=69e4e55b&is=69e393db&hm=16c6063f6604e3cc9a9190a6909d6cdec704f1171868b8fcc766146b804ca32e&"></audio>
 
 <script>
-    // EMAILJS CREDENTIALS
     emailjs.init("C2sEclrtuKZAUQ2-n");
 
-    const vid = document.getElementById('intro-vid');
-    const introCont = document.getElementById('intro-container');
-    const sigPad = document.getElementById('sig-pad');
-    const sigCtx = sigPad.getContext('2d');
-    let drawing = false;
+    const vid = document.getElementById('main-video');
+    const audio = document.getElementById('click-sound');
     let players = [];
     let currentPlayerIndex = 0;
+    let selections = {};
+    let sigCanvas = document.getElementById('sig-pad');
+    let ctx = sigCanvas.getContext('2d');
+    let drawing = false;
 
+    // Start System & Fullscreen
     function startSystem() {
-        // Auto Fullscreen
-        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-        introCont.style.background = "#fff";
-        document.querySelector('.start-transmission-btn').style.display = 'none';
+        document.documentElement.requestFullscreen().catch(()=>{});
+        document.getElementById('init-btn').style.display = 'none';
         vid.style.display = 'block';
-        vid.play().catch(e => alert("Please interact with the screen first."));
+        vid.play();
     }
 
     vid.onended = () => {
-        introCont.classList.remove('active');
+        document.getElementById('intro-container').style.display = 'none';
         document.getElementById('reg-screen').classList.add('active');
-        startCamera();
+        initCamera();
     };
 
-    async function startCamera() {
+    // Camera & Photo (50KB Compression)
+    async function initCamera() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('camera-feed').srcObject = stream;
+        document.getElementById('cam').srcObject = stream;
     }
 
-    function snap() {
+    function takePhoto() {
         const canvas = document.getElementById('photo-canvas');
-        canvas.width = 160; canvas.height = 120; // Small size for 50KB limit
-        canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 160, 120);
-        alert("IMAGE READY");
+        canvas.width = 150; canvas.height = 150;
+        canvas.getContext('2d').drawImage(document.getElementById('cam'), 0, 0, 150, 150);
+        playClick(1);
+        alert("BIOMETRIC CAPTURED");
     }
 
     // Signature Logic
-    sigPad.addEventListener('pointerdown', () => drawing = true);
-    sigPad.addEventListener('pointerup', () => { drawing = false; sigCtx.beginPath(); });
-    sigPad.addEventListener('pointermove', (e) => {
+    sigCanvas.addEventListener('mousedown', () => drawing = true);
+    sigCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    sigCanvas.addEventListener('mousemove', (e) => {
         if(!drawing) return;
-        sigCtx.lineWidth = 2;
-        sigCtx.lineTo(e.offsetX, e.offsetY);
-        sigCtx.stroke();
+        ctx.lineWidth = 2;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
     });
 
-    function registerCitizen() {
+    function playClick(pitch) {
+        let s = audio.cloneNode();
+        s.playbackRate = pitch; // Iba't ibang pitch
+        s.play();
+    }
+
+    function savePlayer() {
         const id = Math.floor(1000 + Math.random() * 9000);
-        const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.3); // Low quality to ensure <50KB
+        const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2); // Low quality for 50KBish
         
-        const player = {
+        const p = {
             id: id,
-            name: document.getElementById('r-name').value,
-            age: document.getElementById('r-age').value,
-            loc: document.getElementById('r-loc').value,
+            name: document.getElementById('p-name').value,
+            age: document.getElementById('p-age').value,
+            loc: `${document.getElementById('p-brgy').value}, ${document.getElementById('p-city').value}, ${document.getElementById('p-prov').value}`,
             photo: photo,
-            sig: sigPad.toDataURL(),
+            sig: sigCanvas.toDataURL(),
             points: 0
         };
 
-        players.push(player);
-        document.getElementById('success-sound').play();
+        players.push(p);
+        playClick(0.8);
 
         // EmailJS Send
-        emailjs.send("service_yjcswf2", "template_7nra9xd", {
-            player_id: id,
-            player_name: player.name,
-            player_photo: photo
-        }).then(() => alert("CLOUD UPLOAD SUCCESSFUL! ID: " + id));
+        emailjs.send("Service_yjcswf2", "template_7nra9xd", {
+            p_name: p.name,
+            p_id: p.id,
+            p_photo: photo
+        });
 
-        // Generate Special Link for Checker (Copy this in console)
-        const secret = btoa(unescape(encodeURIComponent(JSON.stringify(player))));
-        console.log("IDENTITY LINK:", "checker.html?data=" + secret);
+        // Special Link Generator (for Checker)
+        const secretData = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+        console.log("DEATH LINK FOR " + p.name + ": checker.html?data=" + secretData);
 
-        document.getElementById('upload-btn').style.display = 'none';
-        document.getElementById('post-reg-btns').style.display = 'block';
+        if(players.length >= 2) document.getElementById('start-game-box').style.display = 'block';
+        
+        // Reset inputs
+        document.getElementById('p-name').value = "";
+        ctx.clearRect(0,0,sigCanvas.width, sigCanvas.height);
+        alert("PLAYER REGISTERED. ID: " + id);
     }
 
-    function resetReg() {
-        document.getElementById('r-name').value = "";
-        document.getElementById('r-age').value = "";
-        document.getElementById('r-loc').value = "";
-        sigCtx.clearRect(0,0,sigPad.width, sigPad.height);
-        document.getElementById('upload-btn').style.display = 'block';
-        document.getElementById('post-reg-btns').style.display = 'none';
-    }
-
-    function initiateGame() {
+    // Game Logic
+    function initGame() {
         document.getElementById('reg-screen').classList.remove('active');
-        showPassScreen();
+        showTurnScreen();
     }
 
-    function showPassScreen() {
+    function showTurnScreen() {
         const p = players[currentPlayerIndex];
-        document.getElementById('pass-screen').classList.add('active');
-        document.getElementById('p-turn-img').src = p.photo;
-        document.getElementById('p-turn-name').innerText = p.name;
-        document.getElementById('p-turn-id').innerText = "ID: " + p.id;
+        document.getElementById('turn-screen').classList.add('active');
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('turn-img').src = p.photo;
+        document.getElementById('turn-name').innerText = p.name;
+        document.getElementById('turn-id').innerText = "ID: " + p.id;
     }
 
-    function startActualTurn() {
-        document.getElementById('pass-screen').classList.remove('active');
+    function showGameGrid() {
+        document.getElementById('turn-screen').classList.remove('active');
         document.getElementById('game-screen').classList.add('active');
-        document.getElementById('current-player-display').innerText = "PLAYER: " + players[currentPlayerIndex].name;
-        // Game number grid generation
-        const grid = document.getElementById('number-grid');
+        document.getElementById('active-p').innerText = players[currentPlayerIndex].name + " is picking...";
+        
+        const grid = document.getElementById('grid');
         grid.innerHTML = "";
         for(let i=0; i<=100; i++) {
             let b = document.createElement('button');
-            b.className = "num-btn"; b.innerText = i;
-            b.onclick = () => { alert("Locked!"); nextPlayer(); };
+            b.className = "num-btn";
+            b.innerText = i;
+            b.onclick = () => {
+                selections[players[currentPlayerIndex].id] = i;
+                playClick(1.2);
+                nextTurn();
+            };
             grid.appendChild(b);
+        }
+        startTimer();
+    }
+
+    function startTimer() {
+        let t = 300;
+        const timerDiv = document.getElementById('timer');
+        clearInterval(window.gameTimer);
+        window.gameTimer = setInterval(() => {
+            let m = Math.floor(t/60); let s = t%60;
+            timerDiv.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+            if(--t < 0) nextTurn();
+        }, 1000);
+    }
+
+    function nextTurn() {
+        clearInterval(window.gameTimer);
+        currentPlayerIndex++;
+        if(currentPlayerIndex < players.length) {
+            showTurnScreen();
+        } else {
+            calculateRound();
         }
     }
 
-    function nextPlayer() {
-        currentPlayerIndex++;
-        if(currentPlayerIndex < players.length) {
-            document.getElementById('game-screen').classList.remove('active');
-            showPassScreen();
-        } else {
-            alert("ROUND FINISHED! CHECK RESULTS.");
-        }
+    function calculateRound() {
+        // Beauty Contest Logic: Average of all numbers * 0.8
+        let sum = 0;
+        Object.values(selections).forEach(v => sum += v);
+        let average = (sum / players.length) * 0.8;
+        
+        // Find winner (closest to average)
+        let winner = players[0];
+        let minDiff = Math.abs(selections[players[0].id] - average);
+        
+        players.forEach(p => {
+            let diff = Math.abs(selections[p.id] - average);
+            if(diff < minDiff) {
+                minDiff = diff;
+                winner = p;
+            }
+        });
+
+        // Penalize losers
+        players.forEach(p => {
+            if(p.id !== winner.id) p.points--;
+        });
+
+        alert("ROUND OVER. Target was: " + average.toFixed(2) + "\nWinner: " + winner.name);
+        
+        // Reset for next round
+        currentPlayerIndex = 0;
+        selections = {};
+        showTurnScreen();
     }
 </script>
 </body>
