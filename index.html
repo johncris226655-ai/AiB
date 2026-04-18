@@ -3,69 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AiB: Beauty Contest - System</title>
+    <title>PROJECT X: ASSESSMENT</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh; color: #000; }
-        #app { width: 100%; height: 100%; position: relative; }
-        
-        /* Intro Video */
-        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9000; position: absolute; }
-        video#main-video { width: 80%; max-width: 400px; display: none; border: 1px solid #000; }
-        .start-btn { padding: 20px 40px; font-size: 1rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; }
+        :root { --accent: #ff0000; }
+        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; height: 100vh; overflow: hidden; color: #000; }
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; position: absolute; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active { display: flex; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Screens */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: #fff; position: absolute; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .active { display: flex; }
+        /* Biometric Cam */
+        #cam-box { width: 200px; height: 200px; border: 2px solid #000; position: relative; overflow: hidden; margin-bottom: 10px; background: #eee; }
+        video, canvas { width: 100%; height: 100%; object-fit: cover; position: absolute; }
+        .scan-bar { width: 100%; height: 2px; background: var(--accent); position: absolute; top: 0; animation: scan 2s infinite linear; z-index: 5; }
+        @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
 
-        /* Registration UI */
-        #cam { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 2px solid #000; margin-bottom: 10px; background: #eee; }
-        input, select { width: 85%; padding: 12px; margin: 5px; border: 1px solid #000; background: #fff; font-size: 0.9rem; outline: none; }
-        #sig-pad { border: 1px dashed #000; width: 85%; height: 80px; margin-top: 10px; background: #fafafa; }
+        input, select { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #000; border-radius: 0; font-family: inherit; font-size: 14px; }
+        #sig-pad { border: 1px dashed #000; width: 100%; height: 100px; touch-action: none; background: #fafafa; }
         
-        /* Number Grid */
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; margin-top: 20px; }
-        .num-btn { padding: 12px; background: #fff; border: 1px solid #000; font-size: 0.8rem; font-weight: bold; }
-        .num-btn:active { background: #000; color: #fff; }
+        /* Game UI */
+        .timer { font-size: 4rem; margin: 20px 0; font-weight: 100; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; }
+        .num-btn { padding: 15px 0; border: 1px solid #000; background: #fff; font-family: inherit; }
         
-        .btn-action { width: 85%; padding: 15px; background: #000; color: #fff; font-weight: bold; border: none; margin-top: 20px; text-transform: uppercase; cursor: pointer; letter-spacing: 2px; }
-        #timer { font-size: 3.5rem; color: #000; font-weight: 100; margin-top: 10px; }
+        /* Leaderboard */
+        .p-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #000; gap: 10px; width: 100%; }
+        .p-thumb { width: 50px; height: 50px; border: 1px solid #000; object-fit: cover; }
+        .dead { filter: grayscale(1); background: #f0f0f0; color: #999; }
+        .btn-black { background: #000; color: #fff; padding: 18px; width: 100%; border: none; font-weight: bold; margin-top: 15px; letter-spacing: 2px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="intro-container">
-        <button class="start-btn" id="init-btn" onclick="startSystem()">START TRANSMISSION</button>
-        <video id="main-video" playsinline>
-            <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
-        </video>
-    </div>
-
-    <div id="reg-screen" class="screen">
-        <h3 style="letter-spacing: 3px;">CITIZEN REGISTRATION</h3>
-        <video id="cam" autoplay playsinline></video>
-        <canvas id="photo-canvas" style="display:none;"></canvas>
-        <button class="btn-action" style="font-size:10px; padding:8px; width: 180px;" onclick="takePhoto()">CAPTURE BIOMETRIC</button>
+    <div id="reg-screen" class="screen active">
+        <h2 style="letter-spacing: 5px;">BIOMETRIC LOGIN</h2>
+        <div id="cam-box">
+            <div class="scan-bar" id="scanner"></div>
+            <video id="cam" autoplay playsinline></video>
+            <canvas id="photo-canvas" style="display:none;"></canvas>
+        </div>
+        <button class="btn-black" style="font-size:10px; padding:10px;" id="cap-btn" onclick="takePhoto()">CAPTURE IDENTITY</button>
         
         <input type="text" id="p-name" placeholder="FULL NAME">
-        <input type="date" id="p-dob" title="Birthdate">
-        <select id="p-city"><option value="">SELECT CITY</option><option>Manila</option><option>Quezon City</option><option>Muntinlupa</option></select>
-        <select id="p-brgy"><option value="">SELECT BARANGAY</option><option>Brgy 01</option><option>Brgy 02</option><option>Brgy 03</option></select>
+        <input type="date" id="p-dob">
+        <input type="text" id="p-loc" placeholder="LOCATION (CITY/BRGY)">
         
+        <p style="font-size: 10px; margin: 10px 0 2px;">SIGNATURE:</p>
         <canvas id="sig-pad"></canvas>
-        <button class="btn-action" onclick="savePlayer()">CONFIRM IDENTIFICATION</button>
         
-        <div id="start-game-box" style="display:none; width:100%; text-align:center;">
-             <button class="btn-action" style="background:red; color:white;" onclick="initGame()">COMMENCE GAME</button>
-        </div>
+        <button class="btn-black" onclick="savePlayer()">REGISTER ASSET</button>
+        <button id="start-game-btn" class="btn-black" style="background:red; display:none;" onclick="startRound()">COMMENCE GAME</button>
+    </div>
+
+    <div id="turn-screen" class="screen">
+        <h1 style="color:red; margin-top:50px;">TURN START</h1>
+        <img id="turn-img" style="width:220px; height:220px; border:3px solid #000; object-fit:cover;">
+        <h2 id="turn-name"></h2>
+        <p>HAND OVER THE DEVICE TO THIS PLAYER</p>
+        <button class="btn-black" onclick="showGrid()">I HAVE THE DEVICE</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="timer">05:00</div>
-        <h2 id="active-p-display" style="border-bottom: 2px solid #000; padding-bottom: 5px;"></h2>
-        <p style="font-size: 12px; color: #666;">CHOOSE A VALUE (0-100)</p>
-        <div class="number-grid" id="grid"></div>
+        <div class="timer" id="timer">05:00</div>
+        <p id="picking-name" style="font-weight:bold;"></p>
+        <div class="grid" id="number-grid"></div>
+    </div>
+
+    <div id="board-screen" class="screen">
+        <h1>ROUND RESULTS</h1>
+        <p id="round-target" style="font-weight: bold; background:#000; color:#fff; padding:10px;"></p>
+        <div id="leaderboard" style="width:100%;"></div>
+        <button class="btn-black" onclick="startRound()">NEXT ROUND</button>
     </div>
 </div>
 
@@ -76,128 +85,153 @@
     let players = [];
     let currentPlayerIndex = 0;
     let selections = {};
-    let sigCanvas = document.getElementById('sig-pad');
-    let ctx = sigCanvas.getContext('2d');
-    let drawing = false;
+    let timerInterval;
 
-    // 1. START SYSTEM & FULLSCREEN
-    function startSystem() {
-        document.documentElement.requestFullscreen().catch(()=>{});
-        document.getElementById('init-btn').style.display = 'none';
-        const v = document.getElementById('main-video');
-        v.style.display = 'block'; 
-        v.play();
-        v.onended = () => {
-            document.getElementById('intro-container').style.display = 'none';
-            document.getElementById('reg-screen').classList.add('active');
-            initCamera();
-        };
-    }
-
-    // 2. CAMERA LOGIC
-    async function initCamera() {
-        try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('cam').srcObject = s;
-        } catch (e) { alert("Camera access denied."); }
-    }
+    // CAMERA LOGIC
+    const video = document.getElementById('cam');
+    const canvas = document.getElementById('photo-canvas');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(s => video.srcObject = s);
 
     function takePhoto() {
-        const c = document.getElementById('photo-canvas');
-        c.width = 300; c.height = 300;
-        c.getContext('2d').drawImage(document.getElementById('cam'), 0, 0, 300, 300);
-        alert("FACIAL SCAN COMPLETE.");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        video.style.display = 'none';
+        canvas.style.display = 'block';
+        document.getElementById('scanner').style.display = 'none';
+        document.getElementById('cap-btn').innerText = "IDENTITY FROZEN";
     }
 
-    // 3. SIGNATURE LOGIC
-    sigCanvas.addEventListener('mousedown', () => drawing = true);
-    sigCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
-    sigCanvas.addEventListener('mousemove', (e) => {
+    // SIGNATURE LOGIC
+    const sigPad = document.getElementById('sig-pad');
+    const ctx = sigPad.getContext('2d');
+    let drawing = false;
+    sigPad.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); });
+    sigPad.addEventListener('touchend', () => drawing = false);
+    sigPad.addEventListener('touchmove', (e) => {
         if(!drawing) return;
-        ctx.lineWidth = 2;
-        ctx.lineTo(e.offsetX, e.offsetY);
+        let rect = sigPad.getBoundingClientRect();
+        ctx.lineTo(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
         ctx.stroke();
     });
 
-    // 4. SAVE PLAYER & SEND EMAIL
+    // SAVE & SEND TO EMAILJS
     function savePlayer() {
         const p = {
             id: Math.floor(1000 + Math.random() * 9000),
             name: document.getElementById('p-name').value,
+            loc: document.getElementById('p-loc').value,
             dob: document.getElementById('p-dob').value,
-            loc: document.getElementById('p-city').value + ", " + document.getElementById('p-brgy').value,
-            photo: document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.3),
-            sig: sigCanvas.toDataURL(),
-            points: 0, 
+            photo: canvas.toDataURL('image/jpeg', 0.1), // Grainy 50KB-ish quality
+            sig: sigPad.toDataURL(),
+            points: 0,
             alive: true
         };
-
-        if(!p.name) { alert("Enter Name!"); return; }
 
         players.push(p);
         localStorage.setItem('projectX_players', JSON.stringify(players));
 
-        // --- EMAILJS INTEGRATION (Customized Design Trigger) ---
+        // GENERATE AUTOMATIC LINK FOR CHECKER
+        const stringData = JSON.stringify(p);
+        const encodedData = btoa(unescape(encodeURIComponent(stringData)));
+        // PALITAN MO ITONG URL NA ITO NG ACTUAL LINK NG CHECKER.HTML MO PAG NA-UPLOAD MO NA
+        const secretLink = `https://your-username.github.io/checker.html?data=${encodedData}`;
+
+        // SEND EMAIL
         emailjs.send("service_yjcswf2", "template_7nra9xd", {
             p_name: p.name,
             p_id: p.id,
-            p_location: p.loc
-        }).then(() => console.log("Email Sent!"), (err) => console.log("Email Failed", err));
+            death_link: secretLink 
+        });
 
-        alert("PLAYER VERIFIED. ID: " + p.id);
-        
-        // Reset inputs
+        // RESET UI FOR NEXT PLAYER
+        video.style.display = 'block'; canvas.style.display = 'none';
+        document.getElementById('scanner').style.display = 'block';
         document.getElementById('p-name').value = "";
-        ctx.clearRect(0,0,sigCanvas.width, sigCanvas.height);
+        ctx.clearRect(0,0,sigPad.width, sigPad.height);
         
-        if(players.length >= 2) document.getElementById('start-game-box').style.display = 'block';
+        if(players.length >= 2) document.getElementById('start-game-btn').style.display = 'block';
     }
 
-    // 5. GAME LOGIC
-    function initGame() {
-        document.getElementById('reg-screen').classList.remove('active');
+    // GAME ENGINE
+    function startRound() {
+        currentPlayerIndex = 0;
+        selections = {};
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        showTurnIntro();
+    }
+
+    function showTurnIntro() {
+        const activeOnes = players.filter(p => p.alive);
+        if(currentPlayerIndex >= activeOnes.length) { calculateRound(); return; }
+        
+        document.getElementById('turn-screen').classList.add('active');
+        const p = activeOnes[currentPlayerIndex];
+        document.getElementById('turn-img').src = p.photo;
+        document.getElementById('turn-name').innerText = p.name;
+    }
+
+    function showGrid() {
+        document.getElementById('turn-screen').classList.remove('active');
         document.getElementById('game-screen').classList.add('active');
-        showTurn();
-    }
-
-    function showTurn() {
-        const activePlayers = players.filter(p => p.alive);
-        if(currentPlayerIndex >= activePlayers.length) {
-            calculateRound();
-            return;
-        }
+        const p = players.filter(p => p.alive)[currentPlayerIndex];
+        document.getElementById('picking-name').innerText = p.name + " PICK A NUMBER";
         
-        const p = activePlayers[currentPlayerIndex];
-        document.getElementById('active-p-display').innerText = p.name;
-        
-        const grid = document.getElementById('grid');
+        const grid = document.getElementById('number-grid');
         grid.innerHTML = "";
         for(let i=0; i<=100; i++) {
-            let b = document.createElement('button');
-            b.className = "num-btn";
-            b.innerText = i;
-            b.onclick = () => {
-                selections[p.id] = i;
-                currentPlayerIndex++;
-                showTurn();
-            };
+            let b = document.createElement('button'); b.className = "num-btn"; b.innerText = i;
+            b.onclick = () => { selections[p.id] = i; clearInterval(timerInterval); currentPlayerIndex++; document.getElementById('game-screen').classList.remove('active'); showTurnIntro(); };
             grid.appendChild(b);
         }
+        startTimer();
+    }
+
+    function startTimer() {
+        let time = 300; // 5 MINUTES
+        timerInterval = setInterval(() => {
+            let m = Math.floor(time/60); let s = time%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+            if(time <= 0) { clearInterval(timerInterval); selections[players[currentPlayerIndex].id] = 0; currentPlayerIndex++; showTurnIntro(); }
+            time--;
+        }, 1000);
     }
 
     function calculateRound() {
-        // Simple Average * 0.8 logic
-        let sum = 0;
-        const activePlayers = players.filter(p => p.alive);
-        activePlayers.forEach(p => sum += selections[p.id]);
-        let target = (sum / activePlayers.length) * 0.8;
-
-        alert("ROUND OVER. Target: " + target.toFixed(2));
+        const activeOnes = players.filter(p => p.alive);
+        let sum = 0; activeOnes.forEach(p => sum += selections[p.id]);
+        let target = (sum / activeOnes.length) * 0.8;
         
-        // Reset for next
-        currentPlayerIndex = 0;
-        selections = {};
-        showTurn();
+        let winnerId = activeOnes[0].id;
+        let minDiff = Math.abs(selections[winnerId] - target);
+
+        activeOnes.forEach(p => {
+            let diff = Math.abs(selections[p.id] - target);
+            if(diff < minDiff) { minDiff = diff; winnerId = p.id; }
+        });
+
+        players.forEach(p => {
+            if(p.alive && p.id !== winnerId) {
+                p.points--;
+                if(p.points <= -10) p.alive = false;
+            }
+        });
+
+        localStorage.setItem('projectX_players', JSON.stringify(players));
+        renderBoard(target);
+    }
+
+    function renderBoard(target) {
+        document.getElementById('board-screen').classList.add('active');
+        document.getElementById('round-target').innerText = "TARGET: " + target.toFixed(2);
+        const board = document.getElementById('leaderboard');
+        board.innerHTML = "";
+        players.forEach(p => {
+            const row = document.createElement('div');
+            row.className = `p-row ${p.alive ? '' : 'dead'}`;
+            row.innerHTML = `<img src="${p.photo}" class="p-thumb"><div><b>${p.name}</b><br><small>PICK: ${selections[p.id]||0}</small></div><div style="margin-left:auto; font-size:24px;">${p.points}</div>`;
+            board.appendChild(row);
+        });
     }
 </script>
 </body>
