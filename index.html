@@ -7,32 +7,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; width: 100vw; }
-        #app { width: 100%; height: 100%; position: relative; }
-
+        
         /* Intro Section - Plain White, No Shadows */
-        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; position: absolute; transition: opacity 1s; }
-        video { width: 85%; max-width: 500px; height: auto; display: none; }
-        .play-btn { padding: 15px 30px; font-size: 18px; font-weight: bold; cursor: pointer; border: 2px solid #000; background: #fff; color: #000; letter-spacing: 2px; }
+        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; position: absolute; }
+        video { width: 95%; max-width: 500px; height: auto; display: none; }
+        .play-btn { padding: 20px 40px; font-size: 18px; font-weight: bold; cursor: pointer; border: 3px solid #000; background: #fff; color: #000; letter-spacing: 2px; text-transform: uppercase; }
 
         /* General Screen Style */
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; background: #000; color: #fff; position: absolute; box-sizing: border-box; padding: 20px; }
         .active { display: flex; animation: fadeIn 0.8s forwards; }
 
-        /* Form Inputs */
         input { width: 90%; padding: 12px; margin: 8px 0; border: 1px solid #fff; background: #000; color: #fff; border-radius: 0; font-size: 16px; }
-        #camera-feed { width: 100%; max-width: 250px; border: 1px solid #fff; margin-bottom: 10px; }
-        #sig-pad { background: #fff; width: 90%; height: 120px; border: 1px solid #fff; touch-action: none; }
+        #camera-feed { width: 100%; max-width: 200px; border: 1px solid #fff; }
+        #sig-pad { background: #fff; width: 90%; height: 100px; border: 1px solid #fff; touch-action: none; }
         
-        /* Buttons */
         .btn { background: #000; color: #fff; border: 1px solid #fff; padding: 15px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 90%; margin-top: 15px; }
         .btn:active { background: #fff; color: #000; }
         #fs-btn { position: fixed; bottom: 10px; right: 10px; z-index: 10000; font-size: 10px; border: 1px solid #ccc; background: #fff; color: #000; padding: 5px; }
 
-        /* Game UI */
-        #timer-display { font-size: 4em; color: red; font-weight: bold; margin: 20px 0; }
-        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-height: 250px; overflow-y: auto; }
-        .num-btn { background: #111; color: #fff; border: 1px solid #fff; padding: 12px; font-size: 16px; }
-        .num-btn:disabled { opacity: 0.3; }
+        #timer-display { font-size: 4em; color: red; font-weight: bold; }
+        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-height: 200px; overflow-y: auto; }
+        .num-btn { background: #111; color: #fff; border: 1px solid #fff; padding: 12px; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
@@ -51,24 +46,23 @@
         </div>
 
         <div id="reg-screen" class="screen">
-            <h2 style="letter-spacing: 5px; margin-top:0;">CITIZEN ID</h2>
+            <h2 style="letter-spacing: 5px; margin-bottom:10px;">IDENTIFICATION</h2>
             <video id="camera-feed" autoplay playsinline></video>
             <canvas id="photo-canvas" style="display:none;"></canvas>
-            <button class="btn" style="padding:5px; font-size:10px; width:150px;" onclick="snap()">CAPTURE FACE</button>
+            <button class="btn" style="padding:5px; font-size:10px; width:120px;" onclick="snap()">CAPTURE FACE</button>
             
             <input type="text" id="r-name" placeholder="PANGALAN">
             <input type="number" id="r-age" placeholder="EDAD">
             <input type="text" id="r-loc" placeholder="BRGY, CITY, PROVINCE">
-            
-            <p style="font-size: 10px; margin: 5px 0;">PIRMA (DOODLE):</p>
+            <p style="font-size: 10px; margin: 5px 0;">DOODLE SIGNATURE:</p>
             <canvas id="sig-pad"></canvas>
             
-            <button class="btn" id="reg-submit" onclick="register()">REGISTER CITIZEN</button>
+            <button class="btn" id="reg-submit" onclick="register()">REGISTER</button>
         </div>
 
         <div id="pass-screen" class="screen">
             <h1 style="color:red; letter-spacing:5px;">PASS THE PHONE</h1>
-            <img id="p-img" style="width:150px; border:2px solid #fff; margin:10px;">
+            <img id="p-img" style="width:130px; border:2px solid #fff; margin:10px;">
             <h2 id="p-name-disp"></h2>
             <p id="p-id-disp"></p>
             <button class="btn" onclick="startTurn()">AKO ITO / START TIMER</button>
@@ -76,17 +70,17 @@
 
         <div id="game-screen" class="screen">
             <div id="timer-display">05:00</div>
-            <p id="current-p-name" style="letter-spacing:2px;"></p>
+            <p id="current-p-name" style="letter-spacing:2px; font-weight:bold;"></p>
             <div id="number-grid"></div>
         </div>
     </div>
 
-    <audio id="success-sound" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3?ex=69e4c012&is=69e36e92&hm=2820f05dc9106f4a786869b1939450f5fd7c8614bd54d9fd6ca163ddfa21c3cb&"></audio>
+    <audio id="success-sound" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3"></audio>
     <audio id="tick-sound" src="https://www.soundjay.com/buttons/beep-07.mp3" loop></audio>
 
     <script>
-        // --- EMAILJS INIT ---
-        emailjs.init("YOUR_PUBLIC_KEY"); // PALITAN MO ITO
+        // --- EMAILJS CONFIG (Nilagay ko na ang keys mo) ---
+        emailjs.init("C2sEclrtuKZAUQ2-n"); 
 
         const vid = document.getElementById('intro-vid');
         const introCont = document.getElementById('intro-container');
@@ -99,11 +93,13 @@
         let timer;
         let drawing = false;
 
-        // 1. Video Logic
         function playVideo() {
             startBtn.style.display = 'none';
             vid.style.display = 'block';
-            vid.play().catch(e => alert("Error: Internet issue or link expired."));
+            vid.play().catch(e => {
+                alert("Paalala: Siguraduhin na may internet connection.");
+                startBtn.style.display = 'block';
+            });
         }
 
         vid.onended = () => {
@@ -122,17 +118,18 @@
             }
         }
 
-        // 2. Registration Logic
         async function initCam() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('camera-feed').srcObject = stream;
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                document.getElementById('camera-feed').srcObject = stream;
+            } catch (e) { alert("Hindi ma-access ang camera."); }
         }
 
         function snap() {
             const canvas = document.getElementById('photo-canvas');
             canvas.width = 160; canvas.height = 120;
             canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0,0, 160, 120);
-            alert("FACE CAPTURED");
+            alert("KUHA NA ANG LITRATO");
         }
 
         sigPad.addEventListener('pointerdown', () => drawing = true);
@@ -146,7 +143,7 @@
 
         function register() {
             const id = Math.floor(1000 + Math.random() * 9000);
-            const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2); // Compressed to ~50KB
+            const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2); 
             
             const player = {
                 id: id,
@@ -157,17 +154,21 @@
                 sig: sigPad.toDataURL()
             };
 
+            if(!player.name) { alert("Ilagay ang pangalan!"); return; }
+
             players.push(player);
             document.getElementById('success-sound').play();
 
-            // Special Link Generation (para sa Checker)
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(player))));
-            console.log("CHECKER LINK:", "checker.html?data=" + encoded);
+            // EmailJS Sending
+            emailjs.send("Service_yjcswf2", "template_7nra9xd", {
+                p_id: id,
+                p_name: player.name,
+                p_photo: photo
+            }).then(() => console.log("Email Sent!"), (err) => console.log("Email Error", err));
 
-            // EmailJS
-            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
-                p_id: id, p_name: player.name, p_photo: photo
-            });
+            // Generate Special Link (I-save ito para sa Checker)
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(player))));
+            console.log("CHECKER URL: checker.html?data=" + encoded);
 
             if(players.length >= 2) {
                 const s = document.createElement('button');
@@ -179,13 +180,11 @@
                 document.getElementById('reg-screen').appendChild(s);
             }
 
-            // Reset
             document.getElementById('r-name').value = "";
             sigCtx.clearRect(0,0,sigPad.width, sigPad.height);
-            alert("Registered! ID: " + id);
+            alert("Citizen Registered! ID: " + id);
         }
 
-        // 3. Game Logic
         function showPassScreen() {
             const p = players[currentIndex];
             document.getElementById('pass-screen').classList.add('active');
@@ -197,7 +196,7 @@
         function startTurn() {
             document.getElementById('pass-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
-            document.getElementById('current-p-name').innerText = players[currentIndex].name;
+            document.getElementById('current-p-name').innerText = "TURN OF: " + players[currentIndex].name;
             genGrid();
             startTimer(300);
             document.getElementById('tick-sound').play();
@@ -208,7 +207,7 @@
             for(let i=0; i<=100; i++) {
                 let b = document.createElement('button');
                 b.className = "num-btn"; b.innerText = i;
-                b.onclick = () => { alert("Locked "+i); endTurn(); };
+                b.onclick = () => { alert("Locked Number: "+i); endTurn(); };
                 g.appendChild(b);
             }
         }
@@ -228,7 +227,7 @@
             currentIndex++;
             document.getElementById('game-screen').classList.remove('active');
             if(currentIndex < players.length) showPassScreen();
-            else alert("Game Over! Calculate results manually.");
+            else alert("Lahat ay nakapili na! Turn-off the app.");
         }
     </script>
 </body>
