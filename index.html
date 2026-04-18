@@ -3,220 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PROJECT X: BEAUTY CONTEST</title>
+    <title>AiB: Beauty Contest - System</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root { --accent: #ff0000; --bg: #ffffff; --text: #000000; }
-        body, html { margin: 0; padding: 0; background: var(--bg); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow: hidden; height: 100vh; color: var(--text); }
+        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh; color: #000; }
+        #app { width: 100%; height: 100%; position: relative; }
         
-        /* Intro/Video Section */
-        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; position: absolute; }
-        video { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .start-btn { padding: 20px 40px; font-size: 1rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; z-index: 10000; }
+        /* Intro Video */
+        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9000; position: absolute; }
+        video#main-video { width: 80%; max-width: 400px; display: none; border: 1px solid #000; }
+        .start-btn { padding: 20px 40px; font-size: 1rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; }
 
-        /* General Screens */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: var(--bg); position: absolute; box-sizing: border-box; padding: 20px; transition: all 0.5s ease; opacity: 0; }
-        .active { display: flex; opacity: 1; z-index: 10; }
+        /* Screens */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: #fff; position: absolute; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .active { display: flex; }
 
-        /* Registration UI - White Aesthetic */
-        #cam { width: 220px; height: 220px; border: 1px solid #000; object-fit: cover; background: #eee; margin-bottom: 10px; }
-        .form-group { width: 90%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        input, select { padding: 12px; border: 1px solid #000; background: #fff; font-size: 0.9rem; outline: none; }
+        /* Registration UI */
+        #cam { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; border: 2px solid #000; margin-bottom: 10px; background: #eee; }
+        input, select { width: 85%; padding: 12px; margin: 5px; border: 1px solid #000; background: #fff; font-size: 0.9rem; outline: none; }
+        #sig-pad { border: 1px dashed #000; width: 85%; height: 80px; margin-top: 10px; background: #fafafa; }
         
-        /* Game UI */
-        .timer { font-size: 4rem; font-weight: 200; margin: 20px 0; letter-spacing: -2px; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 95%; max-height: 50vh; overflow-y: auto; padding: 10px; border: 1px solid #eee; }
-        .num-btn { padding: 15px 5px; background: #fff; border: 1px solid #000; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        /* Number Grid */
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; margin-top: 20px; }
+        .num-btn { padding: 12px; background: #fff; border: 1px solid #000; font-size: 0.8rem; font-weight: bold; }
         .num-btn:active { background: #000; color: #fff; }
-
-        /* Leaderboard / Round Results */
-        .results-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .player-card { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px; justify-content: space-between; }
-        .player-card img { width: 50px; height: 50px; border-radius: 50%; border: 1px solid #000; }
-        .points { font-weight: bold; font-size: 1.2rem; }
-        .dead { text-decoration: line-through; color: #ccc; }
-
-        .btn-black { width: 90%; padding: 18px; background: #000; color: #fff; border: none; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 10px; }
-        .btn-outline { width: 90%; padding: 15px; background: #fff; color: #000; border: 1px solid #000; font-weight: bold; margin-top: 5px; }
-
-        .heavy-label { font-size: 0.7rem; letter-spacing: 3px; color: #888; margin-bottom: 10px; }
+        
+        .btn-action { width: 85%; padding: 15px; background: #000; color: #fff; font-weight: bold; border: none; margin-top: 20px; text-transform: uppercase; cursor: pointer; letter-spacing: 2px; }
+        #timer { font-size: 3.5rem; color: #000; font-weight: 100; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="intro-container">
-        <button class="start-btn" id="init-btn" onclick="startSystem()">INITIALIZE PROJECT X</button>
+        <button class="start-btn" id="init-btn" onclick="startSystem()">START TRANSMISSION</button>
         <video id="main-video" playsinline>
             <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
         </video>
     </div>
 
     <div id="reg-screen" class="screen">
-        <p class="heavy-label">CITIZEN IDENTIFICATION</p>
+        <h3 style="letter-spacing: 3px;">CITIZEN REGISTRATION</h3>
         <video id="cam" autoplay playsinline></video>
         <canvas id="photo-canvas" style="display:none;"></canvas>
-        <button class="btn-outline" id="snap-btn" onclick="takePhoto()">CAPTURE BIOMETRICS</button>
+        <button class="btn-action" style="font-size:10px; padding:8px; width: 180px;" onclick="takePhoto()">CAPTURE BIOMETRIC</button>
         
-        <div class="form-group">
-            <input type="text" id="p-name" placeholder="FULL NAME">
-            <input type="date" id="p-dob">
-            <input type="text" id="p-loc" placeholder="BRGY, CITY, PROVINCE">
+        <input type="text" id="p-name" placeholder="FULL NAME">
+        <input type="date" id="p-dob" title="Birthdate">
+        <select id="p-city"><option value="">SELECT CITY</option><option>Manila</option><option>Quezon City</option><option>Muntinlupa</option></select>
+        <select id="p-brgy"><option value="">SELECT BARANGAY</option><option>Brgy 01</option><option>Brgy 02</option><option>Brgy 03</option></select>
+        
+        <canvas id="sig-pad"></canvas>
+        <button class="btn-action" onclick="savePlayer()">CONFIRM IDENTIFICATION</button>
+        
+        <div id="start-game-box" style="display:none; width:100%; text-align:center;">
+             <button class="btn-action" style="background:red; color:white;" onclick="initGame()">COMMENCE GAME</button>
         </div>
-        
-        <p style="font-size:0.6rem; margin-bottom:5px;">SIGNATURE AFFIRMATION</p>
-        <canvas id="sig-pad" style="border:1px solid #000; width:90%; height:80px; background:#fff;"></canvas>
-        
-        <button class="btn-black" onclick="savePlayer()">CONFIRM IDENTIFICATION</button>
-        <div id="game-ready" style="display:none; width:100%; text-align:center;">
-            <button class="btn-black" style="background:red;" onclick="initGame()">START PROJECT X</button>
-        </div>
-    </div>
-
-    <div id="turn-screen" class="screen">
-        <p class="heavy-label">CURRENT TURN</p>
-        <img id="turn-img" style="width:200px; height:200px; border:1px solid #000; object-fit:cover; margin:20px 0;">
-        <h2 id="turn-name" style="letter-spacing:5px;"></h2>
-        <p id="turn-status">AWAITING SELECTION...</p>
-        <button class="btn-black" onclick="showGameGrid()">I AM READY</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div class="timer" id="timer">05:00</div>
-        <div class="grid" id="grid"></div>
-    </div>
-
-    <div id="result-screen" class="screen">
-        <p class="heavy-label">ROUND ANALYSIS</p>
-        <div id="round-info" style="text-align:center; border:1px solid #000; padding:15px; width:90%;">
-            <p id="target-num" style="font-size:1.5rem; margin:0;"></p>
-            <p id="round-winner" style="color:red; font-weight:bold;"></p>
-        </div>
-        <div class="results-list" id="leaderboard"></div>
-        <button class="btn-black" id="next-btn" onclick="checkGameStatus()">NEXT ROUND</button>
+        <div id="timer">05:00</div>
+        <h2 id="active-p-display" style="border-bottom: 2px solid #000; padding-bottom: 5px;"></h2>
+        <p style="font-size: 12px; color: #666;">CHOOSE A VALUE (0-100)</p>
+        <div class="number-grid" id="grid"></div>
     </div>
 </div>
 
-<audio id="click-sound" src="https://cdn.discordapp.com/attachments/1475066979600699504/1495067226858983656/virtual_vibes-okay-confirmation-379994.mp3?ex=69e4e55b&is=69e393db&hm=16c6063f6604e3cc9a9190a6909d6cdec704f1171868b8fcc766146b804ca32e&"></audio>
-
 <script>
-    emailjs.init("C2sEclrtuKZAUQ2-n");
+    // INITIALIZE EMAILJS
+    emailjs.init("Sq2dk1cU5F8dcG2WG");
 
-    const vid = document.getElementById('main-video');
-    const audio = document.getElementById('click-sound');
     let players = [];
     let currentPlayerIndex = 0;
     let selections = {};
-    let isPhotoTaken = false;
-
-    // Signature Logic
-    const sigPad = document.getElementById('sig-pad');
-    const ctx = sigPad.getContext('2d');
+    let sigCanvas = document.getElementById('sig-pad');
+    let ctx = sigCanvas.getContext('2d');
     let drawing = false;
 
+    // 1. START SYSTEM & FULLSCREEN
     function startSystem() {
         document.documentElement.requestFullscreen().catch(()=>{});
         document.getElementById('init-btn').style.display = 'none';
-        vid.style.display = 'block';
-        vid.play();
+        const v = document.getElementById('main-video');
+        v.style.display = 'block'; 
+        v.play();
+        v.onended = () => {
+            document.getElementById('intro-container').style.display = 'none';
+            document.getElementById('reg-screen').classList.add('active');
+            initCamera();
+        };
     }
 
-    vid.onended = () => {
-        switchScreen('reg-screen');
-        initCamera();
-    };
-
-    function switchScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const target = document.getElementById(id);
-        target.classList.add('active');
-    }
-
+    // 2. CAMERA LOGIC
     async function initCamera() {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('cam').srcObject = stream;
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            document.getElementById('cam').srcObject = s;
+        } catch (e) { alert("Camera access denied."); }
     }
 
     function takePhoto() {
-        const cam = document.getElementById('cam');
-        const canvas = document.getElementById('photo-canvas');
-        canvas.width = 150; canvas.height = 150;
-        canvas.getContext('2d').drawImage(cam, 0, 0, 150, 150);
-        cam.pause(); // Freeze effect
-        isPhotoTaken = true;
-        playClick(1);
+        const c = document.getElementById('photo-canvas');
+        c.width = 300; c.height = 300;
+        c.getContext('2d').drawImage(document.getElementById('cam'), 0, 0, 300, 300);
+        alert("FACIAL SCAN COMPLETE.");
     }
 
-    sigPad.addEventListener('pointerdown', () => drawing = true);
-    sigPad.addEventListener('pointerup', () => { drawing = false; ctx.beginPath(); });
-    sigPad.addEventListener('pointermove', (e) => {
+    // 3. SIGNATURE LOGIC
+    sigCanvas.addEventListener('mousedown', () => drawing = true);
+    sigCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    sigCanvas.addEventListener('mousemove', (e) => {
         if(!drawing) return;
         ctx.lineWidth = 2;
         ctx.lineTo(e.offsetX, e.offsetY);
         ctx.stroke();
     });
 
-    function playClick(pitch) {
-        let s = audio.cloneNode();
-        s.playbackRate = pitch;
-        s.play();
-    }
-
+    // 4. SAVE PLAYER & SEND EMAIL
     function savePlayer() {
-        if(!isPhotoTaken) return alert("CAPTURE BIOMETRICS FIRST");
-        const name = document.getElementById('p-name').value;
-        if(!name) return alert("ENTER NAME");
-
         const p = {
             id: Math.floor(1000 + Math.random() * 9000),
-            name: name,
-            photo: document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2),
-            points: 0,
-            isDead: false
+            name: document.getElementById('p-name').value,
+            dob: document.getElementById('p-dob').value,
+            loc: document.getElementById('p-city').value + ", " + document.getElementById('p-brgy').value,
+            photo: document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.3),
+            sig: sigCanvas.toDataURL(),
+            points: 0, 
+            alive: true
         };
 
+        if(!p.name) { alert("Enter Name!"); return; }
+
         players.push(p);
-        playClick(0.8);
+        localStorage.setItem('projectX_players', JSON.stringify(players));
 
-        // EmailJS
-        emailjs.send("Service_yjcswf2", "template_7nra9xd", {
-            p_name: p.name, p_id: p.id, p_photo: p.photo
-        });
+        // --- EMAILJS INTEGRATION (Customized Design Trigger) ---
+        emailjs.send("service_yjcswf2", "template_7nra9xd", {
+            p_name: p.name,
+            p_id: p.id,
+            p_location: p.loc
+        }).then(() => console.log("Email Sent!"), (err) => console.log("Email Failed", err));
 
-        alert("ID: " + p.id + " CONFIRMED.");
+        alert("PLAYER VERIFIED. ID: " + p.id);
         
-        // Reset for next
+        // Reset inputs
         document.getElementById('p-name').value = "";
-        document.getElementById('cam').play();
-        ctx.clearRect(0,0,sigPad.width, sigPad.height);
-        isPhotoTaken = false;
-
-        if(players.length >= 2) document.getElementById('game-ready').style.display = 'block';
+        ctx.clearRect(0,0,sigCanvas.width, sigCanvas.height);
+        
+        if(players.length >= 2) document.getElementById('start-game-box').style.display = 'block';
     }
 
+    // 5. GAME LOGIC
     function initGame() {
-        switchScreen('turn-screen');
-        showTurnScreen();
+        document.getElementById('reg-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        showTurn();
     }
 
-    function showTurnScreen() {
-        // Skip dead players
-        while(players[currentPlayerIndex].isDead) {
-            currentPlayerIndex++;
-            if(currentPlayerIndex >= players.length) {
-                calculateRound();
-                return;
-            }
+    function showTurn() {
+        const activePlayers = players.filter(p => p.alive);
+        if(currentPlayerIndex >= activePlayers.length) {
+            calculateRound();
+            return;
         }
         
-        const p = players[currentPlayerIndex];
-        switchScreen('turn-screen');
-        document.getElementById('turn-img').src = p.photo;
-        document.getElementById('turn-name').innerText = p.name;
-    }
-
-    function showGameGrid() {
-        switchScreen('game-screen');
+        const p = activePlayers[currentPlayerIndex];
+        document.getElementById('active-p-display').innerText = p.name;
+        
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
         for(let i=0; i<=100; i++) {
@@ -224,102 +177,27 @@
             b.className = "num-btn";
             b.innerText = i;
             b.onclick = () => {
-                selections[players[currentPlayerIndex].id] = i;
-                playClick(1.2 + (i/100)); // Dynamic pitch
-                nextPlayer();
+                selections[p.id] = i;
+                currentPlayerIndex++;
+                showTurn();
             };
             grid.appendChild(b);
-        }
-        startTimer();
-    }
-
-    function startTimer() {
-        let t = 300;
-        clearInterval(window.timerInt);
-        window.timerInt = setInterval(() => {
-            let m = Math.floor(t/60); let s = t%60;
-            document.getElementById('timer').innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
-            if(--t < 0) nextPlayer();
-        }, 1000);
-    }
-
-    function nextPlayer() {
-        clearInterval(window.timerInt);
-        currentPlayerIndex++;
-        if(currentPlayerIndex < players.length) {
-            showTurnScreen();
-        } else {
-            calculateRound();
         }
     }
 
     function calculateRound() {
+        // Simple Average * 0.8 logic
         let sum = 0;
-        let activeCount = 0;
-        Object.values(selections).forEach(v => { sum += v; activeCount++; });
-        let target = (sum / activeCount) * 0.8;
+        const activePlayers = players.filter(p => p.alive);
+        activePlayers.forEach(p => sum += selections[p.id]);
+        let target = (sum / activePlayers.length) * 0.8;
+
+        alert("ROUND OVER. Target: " + target.toFixed(2));
         
-        let winnerId = null;
-        let minDiff = 101;
-
-        players.forEach(p => {
-            if(!p.isDead && selections[p.id] !== undefined) {
-                let diff = Math.abs(selections[p.id] - target);
-                if(diff < minDiff) {
-                    minDiff = diff;
-                    winnerId = p.id;
-                }
-            }
-        });
-
-        // Penalize
-        players.forEach(p => {
-            if(!p.isDead && p.id !== winnerId) {
-                p.points--;
-                if(p.points <= -10) p.isDead = true;
-            }
-        });
-
-        displayResults(target, winnerId);
-    }
-
-    function displayResults(target, winnerId) {
-        switchScreen('result-screen');
-        document.getElementById('target-num').innerText = "TARGET: " + target.toFixed(2);
-        const winPlayer = players.find(p => p.id === winnerId);
-        document.getElementById('round-winner').innerText = "WINNER: " + (winPlayer ? winPlayer.name : "NONE");
-
-        const list = document.getElementById('leaderboard');
-        list.innerHTML = "";
-        players.forEach(p => {
-            list.innerHTML += `
-                <div class="player-card ${p.isDead ? 'dead' : ''}">
-                    <img src="${p.photo}">
-                    <div style="flex:1; margin-left:15px;">
-                        <div style="font-weight:bold;">${p.name}</div>
-                        <div style="font-size:0.7rem;">PICKED: ${selections[p.id] !== undefined ? selections[p.id] : 'N/A'}</div>
-                    </div>
-                    <div class="points" style="color:${p.points < 0 ? 'red' : 'black'}">${p.points}</div>
-                </div>
-            `;
-        });
-    }
-
-    function checkGameStatus() {
-        const alivePlayers = players.filter(p => !p.isDead);
-        
-        if(alivePlayers.length === 1) {
-            alert("GAME OVER. SOLE SURVIVOR: " + alivePlayers[0].name);
-            location.reload();
-        } else if(alivePlayers.length === 0) {
-            alert("PROJECT X: NO ONE SURVIVED.");
-            location.reload();
-        } else {
-            // Next Round
-            currentPlayerIndex = 0;
-            selections = {};
-            showTurnScreen();
-        }
+        // Reset for next
+        currentPlayerIndex = 0;
+        selections = {};
+        showTurn();
     }
 </script>
 </body>
