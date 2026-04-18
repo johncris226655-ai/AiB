@@ -3,200 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AiB: System Entry</title>
+    <title>AiB: King of Diamonds</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; }
-        #app { width: 100%; height: 100%; position: relative; }
-
-        /* Intro Section */
-        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; position: absolute; }
-        video { width: 90%; max-width: 500px; height: auto; display: none; }
-        .play-btn { padding: 15px 30px; font-size: 16px; border: 2px solid #000; background: #fff; cursor: pointer; letter-spacing: 2px; font-weight: bold; }
-
-        /* Screens */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; background: #000; color: #fff; position: absolute; padding: 20px; box-sizing: border-box; }
-        .active { display: flex; animation: fadeIn 0.8s forwards; }
-
-        /* Inputs */
-        input { width: 85%; padding: 10px; margin: 5px 0; border: 1px solid #fff; background: #000; color: #fff; border-radius: 0; }
-        #camera-feed { width: 100%; max-width: 250px; border: 1px solid #fff; margin-bottom: 5px; }
-        #sig-pad { background: #fff; width: 85%; height: 100px; border: 1px solid #fff; touch-action: none; }
+        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; width: 100vw; color: #000; }
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; position: absolute; background: #000; color: #fff; box-sizing: border-box; padding: 20px; }
+        .active { display: flex; animation: fadeIn 0.5s forwards; }
         
-        .btn { background: #000; color: #fff; border: 1px solid #fff; padding: 12px; cursor: pointer; font-weight: bold; width: 85%; margin-top: 10px; text-transform: uppercase; }
+        /* Intro - Pure White */
+        #intro-container { background: #fff; z-index: 9999; }
+        video { width: 90%; max-width: 500px; display: none; }
+        .start-transmission-btn { padding: 20px 40px; font-size: 1.2rem; border: 2px solid #000; background: #fff; color: #000; font-weight: bold; letter-spacing: 3px; cursor: pointer; }
+
+        /* Registration & Forms */
+        #camera-feed { width: 100%; max-width: 280px; border: 2px solid #fff; margin-bottom: 10px; }
+        input { width: 85%; padding: 12px; margin: 5px 0; border: 1px solid #fff; background: #000; color: #fff; font-size: 16px; }
+        #sig-pad { background: #fff; width: 85%; height: 100px; border: 1px solid #fff; touch-action: none; }
+        .btn { background: #000; color: #fff; border: 1px solid #fff; padding: 15px; width: 85%; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
         .btn:active { background: #fff; color: #000; }
 
-        /* Game Elements */
-        #timer { font-size: 3.5em; color: red; font-weight: bold; margin: 15px 0; }
-        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; max-height: 200px; overflow-y: auto; }
+        /* Game UI */
+        #timer { font-size: 4rem; color: red; font-weight: bold; }
+        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; max-height: 200px; overflow-y: scroll; }
         .num-btn { background: #111; color: #fff; border: 1px solid #fff; padding: 10px; }
-
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="app">
-        <div id="intro-container">
-            <button id="start-btn" class="play-btn" onclick="startIntro()">START TRANSMISSION</button>
-            <video id="intro-vid" playsinline>
-                <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
-            </video>
-        </div>
+<div id="app">
+    <div id="intro-container" class="screen active" style="background:#fff;">
+        <button class="start-transmission-btn" onclick="startSystem()">START TRANSMISSION</button>
+        <video id="intro-vid" playsinline>
+            <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
+        </video>
+    </div>
 
-        <div id="reg-screen" class="screen">
-            <h3 style="margin:0 0 10px 0; letter-spacing:3px;">CITIZEN REGISTRY</h3>
-            <video id="camera-feed" autoplay playsinline></video>
-            <canvas id="photo-canvas" style="display:none;"></canvas>
-            <button class="btn" style="font-size:10px; width:150px; padding:5px;" onclick="snap()">CAPTURE FACE</button>
-            
-            <input type="text" id="r-name" placeholder="FULL NAME">
-            <input type="number" id="r-age" placeholder="AGE">
-            <input type="text" id="r-loc" placeholder="BRGY, CITY, PROVINCE">
-            <p style="font-size:10px; margin:5px 0;">DOODLE SIGNATURE:</p>
-            <canvas id="sig-pad"></canvas>
-            <button class="btn" onclick="register()">REGISTER</button>
-        </div>
-
-        <div id="pass-screen" class="screen">
-            <h1 style="color:red; letter-spacing:3px;">PASS THE PHONE</h1>
-            <img id="p-img" style="width:120px; border:2px solid #fff;">
-            <h2 id="p-name"></h2>
-            <p id="p-id"></p>
-            <button class="btn" onclick="startTurn()">I AM READY</button>
-        </div>
-
-        <div id="game-screen" class="screen">
-            <div id="timer">05:00</div>
-            <p id="current-name" style="letter-spacing:2px;"></p>
-            <div id="number-grid"></div>
+    <div id="reg-screen" class="screen">
+        <h2 style="letter-spacing:5px;">REGISTRATION</h2>
+        <video id="camera-feed" autoplay playsinline></video>
+        <canvas id="photo-canvas" style="display:none;"></canvas>
+        <button class="btn" style="width:150px; font-size:10px; padding:5px;" onclick="snap()">CAPTURE</button>
+        <input type="text" id="r-name" placeholder="PANGALAN">
+        <input type="number" id="r-age" placeholder="EDAD">
+        <input type="text" id="r-loc" placeholder="BRGY, CITY, PROVINCE">
+        <canvas id="sig-pad"></canvas>
+        <button class="btn" id="upload-btn" onclick="registerCitizen()">UPLOAD TO CLOUD</button>
+        <div id="post-reg-btns" style="display:none; width:100%; text-align:center;">
+            <button class="btn" onclick="resetReg()">NEXT PLAYER</button>
+            <button class="btn" id="start-game-btn" style="background:red;" onclick="initiateGame()">START GAME</button>
         </div>
     </div>
 
-    <audio id="success-sound" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3?ex=69e4c012&is=69e36e92&hm=2820f05dc9106f4a786869b1939450f5fd7c8614bd54d9fd6ca163ddfa21c3cb&"></audio>
-    <audio id="tick-sound" src="https://www.soundjay.com/buttons/beep-07.mp3" loop></audio>
+    <div id="pass-screen" class="screen">
+        <h1 style="color:red;">PASS THE PHONE</h1>
+        <img id="p-turn-img" style="width:150px; border:2px solid #fff;">
+        <h2 id="p-turn-name"></h2>
+        <p id="p-turn-id"></p>
+        <button class="btn" onclick="startActualTurn()">I AM READY</button>
+    </div>
 
-    <script>
-        emailjs.init("C2sEclrtuKZAUQ2-n");
+    <div id="game-screen" class="screen">
+        <div id="timer">05:00</div>
+        <p id="current-player-display"></p>
+        <div id="number-grid"></div>
+    </div>
+</div>
 
-        const vid = document.getElementById('intro-vid');
-        const sigPad = document.getElementById('sig-pad');
-        const sigCtx = sigPad.getContext('2d');
-        let players = [];
-        let currentIndex = 0;
-        let drawing = false;
+<audio id="success-sound" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3"></audio>
 
-        function startIntro() {
-            document.getElementById('start-btn').style.display = 'none';
-            vid.style.display = 'block';
-            vid.play();
-        }
+<script>
+    // EMAILJS CREDENTIALS
+    emailjs.init("C2sEclrtuKZAUQ2-n");
 
-        vid.onended = () => {
-            document.getElementById('intro-container').style.display = 'none';
-            document.getElementById('reg-screen').classList.add('active');
-            initCam();
+    const vid = document.getElementById('intro-vid');
+    const introCont = document.getElementById('intro-container');
+    const sigPad = document.getElementById('sig-pad');
+    const sigCtx = sigPad.getContext('2d');
+    let drawing = false;
+    let players = [];
+    let currentPlayerIndex = 0;
+
+    function startSystem() {
+        // Auto Fullscreen
+        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        introCont.style.background = "#fff";
+        document.querySelector('.start-transmission-btn').style.display = 'none';
+        vid.style.display = 'block';
+        vid.play().catch(e => alert("Please interact with the screen first."));
+    }
+
+    vid.onended = () => {
+        introCont.classList.remove('active');
+        document.getElementById('reg-screen').classList.add('active');
+        startCamera();
+    };
+
+    async function startCamera() {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        document.getElementById('camera-feed').srcObject = stream;
+    }
+
+    function snap() {
+        const canvas = document.getElementById('photo-canvas');
+        canvas.width = 160; canvas.height = 120; // Small size for 50KB limit
+        canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 160, 120);
+        alert("IMAGE READY");
+    }
+
+    // Signature Logic
+    sigPad.addEventListener('pointerdown', () => drawing = true);
+    sigPad.addEventListener('pointerup', () => { drawing = false; sigCtx.beginPath(); });
+    sigPad.addEventListener('pointermove', (e) => {
+        if(!drawing) return;
+        sigCtx.lineWidth = 2;
+        sigCtx.lineTo(e.offsetX, e.offsetY);
+        sigCtx.stroke();
+    });
+
+    function registerCitizen() {
+        const id = Math.floor(1000 + Math.random() * 9000);
+        const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.3); // Low quality to ensure <50KB
+        
+        const player = {
+            id: id,
+            name: document.getElementById('r-name').value,
+            age: document.getElementById('r-age').value,
+            loc: document.getElementById('r-loc').value,
+            photo: photo,
+            sig: sigPad.toDataURL(),
+            points: 0
         };
 
-        async function initCam() {
-            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            document.getElementById('camera-feed').srcObject = s;
+        players.push(player);
+        document.getElementById('success-sound').play();
+
+        // EmailJS Send
+        emailjs.send("service_yjcswf2", "template_7nra9xd", {
+            player_id: id,
+            player_name: player.name,
+            player_photo: photo
+        }).then(() => alert("CLOUD UPLOAD SUCCESSFUL! ID: " + id));
+
+        // Generate Special Link for Checker (Copy this in console)
+        const secret = btoa(unescape(encodeURIComponent(JSON.stringify(player))));
+        console.log("IDENTITY LINK:", "checker.html?data=" + secret);
+
+        document.getElementById('upload-btn').style.display = 'none';
+        document.getElementById('post-reg-btns').style.display = 'block';
+    }
+
+    function resetReg() {
+        document.getElementById('r-name').value = "";
+        document.getElementById('r-age').value = "";
+        document.getElementById('r-loc').value = "";
+        sigCtx.clearRect(0,0,sigPad.width, sigPad.height);
+        document.getElementById('upload-btn').style.display = 'block';
+        document.getElementById('post-reg-btns').style.display = 'none';
+    }
+
+    function initiateGame() {
+        document.getElementById('reg-screen').classList.remove('active');
+        showPassScreen();
+    }
+
+    function showPassScreen() {
+        const p = players[currentPlayerIndex];
+        document.getElementById('pass-screen').classList.add('active');
+        document.getElementById('p-turn-img').src = p.photo;
+        document.getElementById('p-turn-name').innerText = p.name;
+        document.getElementById('p-turn-id').innerText = "ID: " + p.id;
+    }
+
+    function startActualTurn() {
+        document.getElementById('pass-screen').classList.remove('active');
+        document.getElementById('game-screen').classList.add('active');
+        document.getElementById('current-player-display').innerText = "PLAYER: " + players[currentPlayerIndex].name;
+        // Game number grid generation
+        const grid = document.getElementById('number-grid');
+        grid.innerHTML = "";
+        for(let i=0; i<=100; i++) {
+            let b = document.createElement('button');
+            b.className = "num-btn"; b.innerText = i;
+            b.onclick = () => { alert("Locked!"); nextPlayer(); };
+            grid.appendChild(b);
         }
+    }
 
-        function snap() {
-            const canvas = document.getElementById('photo-canvas');
-            canvas.width = 160; canvas.height = 120;
-            canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0,0, 160, 120);
-            alert("FACE CAPTURED");
-        }
-
-        sigPad.addEventListener('pointerdown', () => drawing = true);
-        sigPad.addEventListener('pointerup', () => { drawing = false; sigCtx.beginPath(); });
-        sigPad.addEventListener('pointermove', (e) => {
-            if(!drawing) return;
-            sigCtx.lineWidth = 2;
-            sigCtx.lineTo(e.offsetX, e.offsetY);
-            sigCtx.stroke();
-        });
-
-        function register() {
-            const id = Math.floor(1000 + Math.random() * 9000);
-            const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2);
-            const p = {
-                id: id,
-                name: document.getElementById('r-name').value,
-                age: document.getElementById('r-age').value,
-                loc: document.getElementById('r-loc').value,
-                photo: photo,
-                sig: sigPad.toDataURL()
-            };
-
-            players.push(p);
-            document.getElementById('success-sound').play();
-
-            // EmailJS Send
-            emailjs.send("Service_yjcswf2", "template_7nra9xd", {
-                p_id: id, p_name: p.name, p_photo: photo
-            });
-
-            // Console log para sa link (copy ito para sa checker)
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
-            console.log("IDENTITY LINK:", "checker.html?data=" + encoded);
-
-            if(players.length >= 2) {
-                const b = document.createElement('button');
-                b.className = "btn"; b.innerText = "START GAME ("+players.length+")";
-                b.onclick = () => { document.getElementById('reg-screen').classList.remove('active'); showPass(); };
-                document.getElementById('reg-screen').appendChild(b);
-            }
-            alert("Registered! ID: " + id);
-            document.getElementById('r-name').value = "";
-            sigCtx.clearRect(0,0,sigPad.width, sigPad.height);
-        }
-
-        function showPass() {
-            const p = players[currentIndex];
-            document.getElementById('pass-screen').classList.add('active');
+    function nextPlayer() {
+        currentPlayerIndex++;
+        if(currentPlayerIndex < players.length) {
             document.getElementById('game-screen').classList.remove('active');
-            document.getElementById('p-img').src = p.photo;
-            document.getElementById('p-name').innerText = p.name;
-            document.getElementById('p-id').innerText = "CITIZEN ID: " + p.id;
+            showPassScreen();
+        } else {
+            alert("ROUND FINISHED! CHECK RESULTS.");
         }
-
-        function startTurn() {
-            document.getElementById('pass-screen').classList.remove('active');
-            document.getElementById('game-screen').classList.add('active');
-            document.getElementById('current-name').innerText = players[currentIndex].name;
-            genGrid();
-            startTimer(300);
-            document.getElementById('tick-sound').play();
-        }
-
-        function genGrid() {
-            const g = document.getElementById('number-grid'); g.innerHTML = "";
-            for(let i=0; i<=100; i++) {
-                let b = document.createElement('button');
-                b.className = "num-btn"; b.innerText = i;
-                b.onclick = () => { alert("Locked "+i); endTurn(); };
-                g.appendChild(b);
-            }
-        }
-
-        function startTimer(s) {
-            let t = s;
-            let timer = setInterval(() => {
-                let min = Math.floor(t/60); let sec = t%60;
-                document.getElementById('timer').innerText = `${min<10?'0':''}${min}:${sec<10?'0':''}${sec}`;
-                if(--t < 0) { clearInterval(timer); endTurn(); }
-            }, 1000);
-        }
-
-        function endTurn() {
-            document.getElementById('tick-sound').pause();
-            currentIndex++;
-            if(currentIndex < players.length) showPass();
-            else alert("Game Ended.");
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
