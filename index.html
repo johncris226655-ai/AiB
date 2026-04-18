@@ -3,86 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AiB: Beauty Contest - System</title>
+    <title>PROJECT X: BEAUTY CONTEST</title>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh; color: #000; transition: background 1s; }
-        #app { width: 100%; height: 100%; position: relative; }
+        :root { --accent: #ff0000; --bg: #ffffff; --text: #000000; }
+        body, html { margin: 0; padding: 0; background: var(--bg); font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; overflow: hidden; height: 100vh; color: var(--text); }
         
-        /* Intro - Plain White */
-        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9000; position: absolute; }
-        video { width: 90%; max-width: 600px; display: none; border: none; }
-        .start-btn { padding: 20px 40px; font-size: 1.2rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; }
+        /* Intro/Video Section */
+        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; position: absolute; }
+        video { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .start-btn { padding: 20px 40px; font-size: 1rem; background: #000; color: #fff; border: none; cursor: pointer; letter-spacing: 5px; font-weight: bold; z-index: 10000; }
 
-        /* General Screen Style */
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: #000; color: #fff; position: absolute; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .active { display: flex; }
+        /* General Screens */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; background: var(--bg); position: absolute; box-sizing: border-box; padding: 20px; transition: all 0.5s ease; opacity: 0; }
+        .active { display: flex; opacity: 1; z-index: 10; }
 
-        /* Registration UI */
-        #camera-feed { width: 200px; height: 150px; border: 2px solid #fff; object-fit: cover; margin-bottom: 10px; }
-        input { width: 85%; padding: 12px; margin: 5px; border: 1px solid #555; background: #111; color: #fff; font-size: 1rem; }
-        #sig-pad { background: #fff; width: 85%; height: 100px; margin-top: 10px; cursor: crosshair; }
+        /* Registration UI - White Aesthetic */
+        #cam { width: 220px; height: 220px; border: 1px solid #000; object-fit: cover; background: #eee; margin-bottom: 10px; }
+        .form-group { width: 90%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        input, select { padding: 12px; border: 1px solid #000; background: #fff; font-size: 0.9rem; outline: none; }
         
         /* Game UI */
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; width: 90%; }
-        .num-btn { padding: 15px; background: #111; color: #fff; border: 1px solid #fff; font-size: 1.1rem; }
-        .num-btn:active { background: #fff; color: #000; }
-        
-        .btn-action { width: 85%; padding: 15px; background: #fff; color: #000; font-weight: bold; border: none; margin-top: 20px; text-transform: uppercase; cursor: pointer; }
-        
-        /* Cinematic Text */
-        .heavy-text { font-size: 0.8rem; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
-        .id-badge { font-size: 1.5rem; color: #ff0000; font-weight: bold; border: 1px solid #ff0000; padding: 5px 20px; margin: 10px 0; }
-        
-        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .eliminating { animation: flash 0.2s infinite; background: red !important; }
+        .timer { font-size: 4rem; font-weight: 200; margin: 20px 0; letter-spacing: -2px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 95%; max-height: 50vh; overflow-y: auto; padding: 10px; border: 1px solid #eee; }
+        .num-btn { padding: 15px 5px; background: #fff; border: 1px solid #000; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .num-btn:active { background: #000; color: #fff; }
+
+        /* Leaderboard / Round Results */
+        .results-list { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .player-card { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 10px; justify-content: space-between; }
+        .player-card img { width: 50px; height: 50px; border-radius: 50%; border: 1px solid #000; }
+        .points { font-weight: bold; font-size: 1.2rem; }
+        .dead { text-decoration: line-through; color: #ccc; }
+
+        .btn-black { width: 90%; padding: 18px; background: #000; color: #fff; border: none; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; margin-top: 10px; }
+        .btn-outline { width: 90%; padding: 15px; background: #fff; color: #000; border: 1px solid #000; font-weight: bold; margin-top: 5px; }
+
+        .heavy-label { font-size: 0.7rem; letter-spacing: 3px; color: #888; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="intro-container">
-        <button class="start-btn" id="init-btn" onclick="startSystem()">START TRANSMISSION</button>
+        <button class="start-btn" id="init-btn" onclick="startSystem()">INITIALIZE PROJECT X</button>
         <video id="main-video" playsinline>
             <source src="https://cdn.discordapp.com/attachments/1475066979600699504/1495037802734420229/New_Project_175_61DEA48.mp4?ex=69e4c9f4&is=69e37874&hm=d37e0e827d34654edba3d526c1a08b40edd5bf38636f6f3b402bd8f9adb39d2e&" type="video/mp4">
         </video>
     </div>
 
     <div id="reg-screen" class="screen">
-        <p class="heavy-text">CITIZEN DATA ACQUISITION</p>
+        <p class="heavy-label">CITIZEN IDENTIFICATION</p>
         <video id="cam" autoplay playsinline></video>
         <canvas id="photo-canvas" style="display:none;"></canvas>
-        <button class="btn-action" style="font-size:0.7rem; padding:8px;" onclick="takePhoto()">CAPTURE BIOMETRICS</button>
+        <button class="btn-outline" id="snap-btn" onclick="takePhoto()">CAPTURE BIOMETRICS</button>
         
-        <input type="text" id="p-name" placeholder="FULL NAME">
-        <input type="number" id="p-age" placeholder="AGE">
-        <input type="text" id="p-brgy" placeholder="BARANGAY">
-        <input type="text" id="p-city" placeholder="CITY">
-        <input type="text" id="p-prov" placeholder="PROVINCE">
+        <div class="form-group">
+            <input type="text" id="p-name" placeholder="FULL NAME">
+            <input type="date" id="p-dob">
+            <input type="text" id="p-loc" placeholder="BRGY, CITY, PROVINCE">
+        </div>
         
-        <p style="font-size:10px; margin:15px 0 5px 0;">SIGNATURE AFFIRMATION:</p>
-        <canvas id="sig-pad"></canvas>
+        <p style="font-size:0.6rem; margin-bottom:5px;">SIGNATURE AFFIRMATION</p>
+        <canvas id="sig-pad" style="border:1px solid #000; width:90%; height:80px; background:#fff;"></canvas>
         
-        <button class="btn-action" onclick="savePlayer()">REGISTER CITIZEN</button>
-        <div id="start-game-box" style="display:none; width:100%; text-align:center;">
-             <button class="btn-action" style="background:red; color:white;" onclick="initGame()">COMMENCE GAME</button>
+        <button class="btn-black" onclick="savePlayer()">CONFIRM IDENTIFICATION</button>
+        <div id="game-ready" style="display:none; width:100%; text-align:center;">
+            <button class="btn-black" style="background:red;" onclick="initGame()">START PROJECT X</button>
         </div>
     </div>
 
     <div id="turn-screen" class="screen">
-        <h1 style="color:red; letter-spacing:10px;">TURN OVER</h1>
-        <div id="turn-info" style="text-align:center;">
-            <img id="turn-img" style="width:180px; border:3px solid #fff; margin:20px 0;">
-            <h2 id="turn-name"></h2>
-            <div class="id-badge" id="turn-id"></div>
-        </div>
-        <button class="btn-action" onclick="showGameGrid()">ENTER SELECTION</button>
+        <p class="heavy-label">CURRENT TURN</p>
+        <img id="turn-img" style="width:200px; height:200px; border:1px solid #000; object-fit:cover; margin:20px 0;">
+        <h2 id="turn-name" style="letter-spacing:5px;"></h2>
+        <p id="turn-status">AWAITING SELECTION...</p>
+        <button class="btn-black" onclick="showGameGrid()">I AM READY</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="timer" style="font-size:4rem; color:red;">05:00</div>
-        <p id="active-p"></p>
-        <div class="number-grid" id="grid"></div>
+        <div class="timer" id="timer">05:00</div>
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <p class="heavy-label">ROUND ANALYSIS</p>
+        <div id="round-info" style="text-align:center; border:1px solid #000; padding:15px; width:90%;">
+            <p id="target-num" style="font-size:1.5rem; margin:0;"></p>
+            <p id="round-winner" style="color:red; font-weight:bold;"></p>
+        </div>
+        <div class="results-list" id="leaderboard"></div>
+        <button class="btn-black" id="next-btn" onclick="checkGameStatus()">NEXT ROUND</button>
     </div>
 </div>
 
@@ -96,11 +107,13 @@
     let players = [];
     let currentPlayerIndex = 0;
     let selections = {};
-    let sigCanvas = document.getElementById('sig-pad');
-    let ctx = sigCanvas.getContext('2d');
+    let isPhotoTaken = false;
+
+    // Signature Logic
+    const sigPad = document.getElementById('sig-pad');
+    const ctx = sigPad.getContext('2d');
     let drawing = false;
 
-    // Start System & Fullscreen
     function startSystem() {
         document.documentElement.requestFullscreen().catch(()=>{});
         document.getElementById('init-btn').style.display = 'none';
@@ -109,29 +122,34 @@
     }
 
     vid.onended = () => {
-        document.getElementById('intro-container').style.display = 'none';
-        document.getElementById('reg-screen').classList.add('active');
+        switchScreen('reg-screen');
         initCamera();
     };
 
-    // Camera & Photo (50KB Compression)
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(id);
+        target.classList.add('active');
+    }
+
     async function initCamera() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         document.getElementById('cam').srcObject = stream;
     }
 
     function takePhoto() {
+        const cam = document.getElementById('cam');
         const canvas = document.getElementById('photo-canvas');
         canvas.width = 150; canvas.height = 150;
-        canvas.getContext('2d').drawImage(document.getElementById('cam'), 0, 0, 150, 150);
+        canvas.getContext('2d').drawImage(cam, 0, 0, 150, 150);
+        cam.pause(); // Freeze effect
+        isPhotoTaken = true;
         playClick(1);
-        alert("BIOMETRIC CAPTURED");
     }
 
-    // Signature Logic
-    sigCanvas.addEventListener('mousedown', () => drawing = true);
-    sigCanvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
-    sigCanvas.addEventListener('mousemove', (e) => {
+    sigPad.addEventListener('pointerdown', () => drawing = true);
+    sigPad.addEventListener('pointerup', () => { drawing = false; ctx.beginPath(); });
+    sigPad.addEventListener('pointermove', (e) => {
         if(!drawing) return;
         ctx.lineWidth = 2;
         ctx.lineTo(e.offsetX, e.offsetY);
@@ -140,66 +158,65 @@
 
     function playClick(pitch) {
         let s = audio.cloneNode();
-        s.playbackRate = pitch; // Iba't ibang pitch
+        s.playbackRate = pitch;
         s.play();
     }
 
     function savePlayer() {
-        const id = Math.floor(1000 + Math.random() * 9000);
-        const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2); // Low quality for 50KBish
-        
+        if(!isPhotoTaken) return alert("CAPTURE BIOMETRICS FIRST");
+        const name = document.getElementById('p-name').value;
+        if(!name) return alert("ENTER NAME");
+
         const p = {
-            id: id,
-            name: document.getElementById('p-name').value,
-            age: document.getElementById('p-age').value,
-            loc: `${document.getElementById('p-brgy').value}, ${document.getElementById('p-city').value}, ${document.getElementById('p-prov').value}`,
-            photo: photo,
-            sig: sigCanvas.toDataURL(),
-            points: 0
+            id: Math.floor(1000 + Math.random() * 9000),
+            name: name,
+            photo: document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.2),
+            points: 0,
+            isDead: false
         };
 
         players.push(p);
         playClick(0.8);
 
-        // EmailJS Send
+        // EmailJS
         emailjs.send("Service_yjcswf2", "template_7nra9xd", {
-            p_name: p.name,
-            p_id: p.id,
-            p_photo: photo
+            p_name: p.name, p_id: p.id, p_photo: p.photo
         });
 
-        // Special Link Generator (for Checker)
-        const secretData = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
-        console.log("DEATH LINK FOR " + p.name + ": checker.html?data=" + secretData);
-
-        if(players.length >= 2) document.getElementById('start-game-box').style.display = 'block';
+        alert("ID: " + p.id + " CONFIRMED.");
         
-        // Reset inputs
+        // Reset for next
         document.getElementById('p-name').value = "";
-        ctx.clearRect(0,0,sigCanvas.width, sigCanvas.height);
-        alert("PLAYER REGISTERED. ID: " + id);
+        document.getElementById('cam').play();
+        ctx.clearRect(0,0,sigPad.width, sigPad.height);
+        isPhotoTaken = false;
+
+        if(players.length >= 2) document.getElementById('game-ready').style.display = 'block';
     }
 
-    // Game Logic
     function initGame() {
-        document.getElementById('reg-screen').classList.remove('active');
+        switchScreen('turn-screen');
         showTurnScreen();
     }
 
     function showTurnScreen() {
+        // Skip dead players
+        while(players[currentPlayerIndex].isDead) {
+            currentPlayerIndex++;
+            if(currentPlayerIndex >= players.length) {
+                calculateRound();
+                return;
+            }
+        }
+        
         const p = players[currentPlayerIndex];
-        document.getElementById('turn-screen').classList.add('active');
-        document.getElementById('game-screen').classList.remove('active');
+        switchScreen('turn-screen');
         document.getElementById('turn-img').src = p.photo;
         document.getElementById('turn-name').innerText = p.name;
-        document.getElementById('turn-id').innerText = "ID: " + p.id;
     }
 
     function showGameGrid() {
-        document.getElementById('turn-screen').classList.remove('active');
-        document.getElementById('game-screen').classList.add('active');
-        document.getElementById('active-p').innerText = players[currentPlayerIndex].name + " is picking...";
-        
+        switchScreen('game-screen');
         const grid = document.getElementById('grid');
         grid.innerHTML = "";
         for(let i=0; i<=100; i++) {
@@ -208,8 +225,8 @@
             b.innerText = i;
             b.onclick = () => {
                 selections[players[currentPlayerIndex].id] = i;
-                playClick(1.2);
-                nextTurn();
+                playClick(1.2 + (i/100)); // Dynamic pitch
+                nextPlayer();
             };
             grid.appendChild(b);
         }
@@ -218,17 +235,16 @@
 
     function startTimer() {
         let t = 300;
-        const timerDiv = document.getElementById('timer');
-        clearInterval(window.gameTimer);
-        window.gameTimer = setInterval(() => {
+        clearInterval(window.timerInt);
+        window.timerInt = setInterval(() => {
             let m = Math.floor(t/60); let s = t%60;
-            timerDiv.innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
-            if(--t < 0) nextTurn();
+            document.getElementById('timer').innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+            if(--t < 0) nextPlayer();
         }, 1000);
     }
 
-    function nextTurn() {
-        clearInterval(window.gameTimer);
+    function nextPlayer() {
+        clearInterval(window.timerInt);
         currentPlayerIndex++;
         if(currentPlayerIndex < players.length) {
             showTurnScreen();
@@ -238,34 +254,72 @@
     }
 
     function calculateRound() {
-        // Beauty Contest Logic: Average of all numbers * 0.8
         let sum = 0;
-        Object.values(selections).forEach(v => sum += v);
-        let average = (sum / players.length) * 0.8;
+        let activeCount = 0;
+        Object.values(selections).forEach(v => { sum += v; activeCount++; });
+        let target = (sum / activeCount) * 0.8;
         
-        // Find winner (closest to average)
-        let winner = players[0];
-        let minDiff = Math.abs(selections[players[0].id] - average);
-        
+        let winnerId = null;
+        let minDiff = 101;
+
         players.forEach(p => {
-            let diff = Math.abs(selections[p.id] - average);
-            if(diff < minDiff) {
-                minDiff = diff;
-                winner = p;
+            if(!p.isDead && selections[p.id] !== undefined) {
+                let diff = Math.abs(selections[p.id] - target);
+                if(diff < minDiff) {
+                    minDiff = diff;
+                    winnerId = p.id;
+                }
             }
         });
 
-        // Penalize losers
+        // Penalize
         players.forEach(p => {
-            if(p.id !== winner.id) p.points--;
+            if(!p.isDead && p.id !== winnerId) {
+                p.points--;
+                if(p.points <= -10) p.isDead = true;
+            }
         });
 
-        alert("ROUND OVER. Target was: " + average.toFixed(2) + "\nWinner: " + winner.name);
+        displayResults(target, winnerId);
+    }
+
+    function displayResults(target, winnerId) {
+        switchScreen('result-screen');
+        document.getElementById('target-num').innerText = "TARGET: " + target.toFixed(2);
+        const winPlayer = players.find(p => p.id === winnerId);
+        document.getElementById('round-winner').innerText = "WINNER: " + (winPlayer ? winPlayer.name : "NONE");
+
+        const list = document.getElementById('leaderboard');
+        list.innerHTML = "";
+        players.forEach(p => {
+            list.innerHTML += `
+                <div class="player-card ${p.isDead ? 'dead' : ''}">
+                    <img src="${p.photo}">
+                    <div style="flex:1; margin-left:15px;">
+                        <div style="font-weight:bold;">${p.name}</div>
+                        <div style="font-size:0.7rem;">PICKED: ${selections[p.id] !== undefined ? selections[p.id] : 'N/A'}</div>
+                    </div>
+                    <div class="points" style="color:${p.points < 0 ? 'red' : 'black'}">${p.points}</div>
+                </div>
+            `;
+        });
+    }
+
+    function checkGameStatus() {
+        const alivePlayers = players.filter(p => !p.isDead);
         
-        // Reset for next round
-        currentPlayerIndex = 0;
-        selections = {};
-        showTurnScreen();
+        if(alivePlayers.length === 1) {
+            alert("GAME OVER. SOLE SURVIVOR: " + alivePlayers[0].name);
+            location.reload();
+        } else if(alivePlayers.length === 0) {
+            alert("PROJECT X: NO ONE SURVIVED.");
+            location.reload();
+        } else {
+            // Next Round
+            currentPlayerIndex = 0;
+            selections = {};
+            showTurnScreen();
+        }
     }
 </script>
 </body>
