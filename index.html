@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fil">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AiB: Beauty Contest</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; background: #fff; font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh; color: #000; }
+        #app { width: 100%; height: 100%; position: relative; }
+        
+        /* Intro Video - White Background, Responsive */
+        #intro-container { background: #fff; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1000; position: absolute; top:0; left:0; transition: opacity 1s ease; }
+        video { width: 85%; height: auto; object-fit: contain; }
+
+        /* Screens */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; background: #000; color: #fff; text-align: center; position: absolute; top:0; left:0; }
+        .active { display: flex; animation: fadeIn 0.8s; }
+
+        input { width: 80%; padding: 12px; margin: 8px 0; border: 1px solid #fff; background: #000; color: #fff; font-size: 14px; }
+        #camera-feed { width: 80%; border: 1px solid #fff; margin-bottom: 10px; max-width: 300px; }
+        #sig-pad { background: #fff; width: 80%; height: 100px; touch-action: none; max-width: 300px; }
+        
+        .btn { background: #000; color: #fff; border: 1px solid #fff; padding: 15px; cursor: pointer; width: 80%; margin-top: 15px; font-weight: bold; text-transform: uppercase; }
+        .btn:active { background: #fff; color: #000; }
+        
+        #fs-btn { position: fixed; bottom: 10px; right: 10px; z-index: 2000; padding: 8px; font-size: 10px; background: rgba(255,255,255,0.5); border: none; }
+
+        #number-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 90%; max-height: 40vh; overflow-y: auto; padding: 10px; }
+        .num-btn { background: #222; color: #fff; border: 1px solid #444; padding: 10px; font-size: 12px; }
+        .num-btn:disabled { background: #555; color: #888; border: none; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <button id="fs-btn" onclick="toggleFS()">[ FULLSCREEN ]</button>
+
+    <div id="app">
+        <div id="intro-container" onclick="startIntro()">
+            <p id="tap-msg" style="position:absolute; bottom:20%; color:#aaa; font-size:12px;">TAP TO INITIATE TRANSMISSION</p>
+            <video id="intro-vid" playsinline>
+                <source src="https://drive.google.com/uc?export=download&id=1MKcTn8z5uIogrqMr9VP-zFL3o5vn1UdE" type="video/mp4">
+            </video>
+        </div>
+
+        <div id="reg-screen" class="screen">
+            <h3>IDENTIFICATION</h3>
+            <video id="camera-feed" autoplay playsinline></video>
+            <canvas id="photo-canvas" style="display:none;"></canvas>
+            <button class="btn" onclick="capturePhoto()" style="padding:10px; font-size:12px;">SNAP PHOTO</button>
+            <input type="text" id="p-name" placeholder="FULL NAME">
+            <input type="number" id="p-age" placeholder="AGE">
+            <input type="text" id="p-brgy" placeholder="BARANGAY">
+            <input type="text" id="p-city" placeholder="CITY">
+            <input type="text" id="p-prov" placeholder="PROVINCE">
+            <p style="font-size:10px; margin:5px 0;">DOODLE SIGNATURE:</p>
+            <canvas id="sig-pad"></canvas>
+            <button class="btn" id="reg-btn" onclick="processRegistration()">REGISTER</button>
+        </div>
+
+        <div id="lobby-screen" class="screen">
+            <h2 id="player-count">WAITING...</h2>
+            <button class="btn" id="start-btn" style="display:none;" onclick="startRound()">START GAME</button>
+            <button class="btn" onclick="backToReg()" style="font-size:12px;">ADD PLAYER</button>
+        </div>
+
+        <div id="pass-screen" class="screen">
+            <h1 style="color:red; letter-spacing:5px;">PASS THE PHONE</h1>
+            <div id="next-player-info"></div>
+            <button class="btn" onclick="confirmIdentity()">I AM THIS PLAYER</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <h2 id="current-name">---</h2>
+            <div id="timer" style="font-size: 3em; color: red; font-weight: bold;">05:00</div>
+            <div id="number-grid"></div>
+        </div>
+    </div>
+
+    <audio id="success-chime" src="https://cdn.discordapp.com/attachments/1479686006952427770/1495027189232697344/soundshelfstudio-ui-success-chime-513565.mp3?ex=69e4c012&is=69e36e92&hm=2820f05dc9106f4a786869b1939450f5fd7c8614bd54d9fd6ca163ddfa21c3cb&"></audio>
+    <audio id="clock-tick" src="https://www.soundjay.com/buttons/beep-07.mp3" loop></audio>
+
+    <script>
+        // --- EMAILJS CONFIG ---
+        emailjs.init("YOUR_PUBLIC_KEY"); // Ilagay ang Public Key mo dito
+
+        const vid = document.getElementById('intro-vid');
+        const introCont = document.getElementById('intro-container');
+        const sigPad = document.getElementById('sig-pad');
+        const ctx = sigPad.getContext('2d');
+        let drawing = false;
+        let players = [];
+        let currentPlayerIndex = 0;
+        let countdown;
+
+        function toggleFS() {
+            document.documentElement.requestFullscreen();
+            document.getElementById('fs-btn').style.display = 'none';
+        }
+
+        function startIntro() {
+            document.getElementById('tap-msg').style.display = 'none';
+            vid.play();
+        }
+
+        vid.onended = () => {
+            introCont.style.opacity = "0";
+            setTimeout(() => {
+                introCont.style.display = 'none';
+                document.getElementById('reg-screen').classList.add('active');
+                initCamera();
+            }, 1000);
+        };
+
+        async function initCamera() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            document.getElementById('camera-feed').srcObject = stream;
+        }
+
+        function capturePhoto() {
+            const canvas = document.getElementById('photo-canvas');
+            canvas.width = 160; canvas.height = 120;
+            canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 160, 120);
+            alert("PHOTO LOCKED");
+        }
+
+        // Signature Canvas
+        sigPad.addEventListener('pointerdown', () => drawing = true);
+        sigPad.addEventListener('pointerup', () => { drawing = false; ctx.beginPath(); });
+        sigPad.addEventListener('pointermove', (e) => {
+            if (!drawing) return;
+            ctx.lineWidth = 2; ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+        });
+
+        function processRegistration() {
+            const id = Math.floor(1000 + Math.random() * 9000);
+            const photo = document.getElementById('photo-canvas').toDataURL('image/jpeg', 0.1); // Small 50KB-ish
+            
+            const data = {
+                id: id,
+                name: document.getElementById('p-name').value,
+                age: document.getElementById('p-age').value,
+                address: `${document.getElementById('p-brgy').value}, ${document.getElementById('p-city').value}, ${document.getElementById('p-prov').value}`,
+                photo: photo,
+                sig: sigPad.toDataURL()
+            };
+
+            // EMAILJS SEND
+            emailjs.send("service_id", "template_id", {
+                p_id: id,
+                p_name: data.name,
+                p_photo: photo
+            });
+
+            // Gagawa ng Special Link (Base64 encoded)
+            const encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            const specialLink = "identity.html?citizen=" + encodedData;
+
+            console.log("SPECIAL LINK FOR FILM:", specialLink); // Makikita sa Console
+            
+            players.push(data);
+            document.getElementById('success-chime').play();
+            alert("CITIZEN REGISTERED: ID " + id + "\n\nSave the link from console for Identity Checker!");
+            
+            showLobby();
+        }
+
+        function showLobby() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('lobby-screen').classList.add('active');
+            document.getElementById('player-count').innerText = `PLAYERS: ${players.length}`;
+            if(players.length >= 2) document.getElementById('start-btn').style.display = 'block';
+        }
+
+        function backToReg() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('reg-screen').classList.add('active');
+            ctx.clearRect(0, 0, sigPad.width, sigPad.height);
+        }
+
+        function startRound() {
+            showPassScreen();
+        }
+
+        function showPassScreen() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const p = players[currentPlayerIndex];
+            document.getElementById('next-player-info').innerHTML = `
+                <img src="${p.photo}" style="width:120px; border:2px solid #fff; margin:10px;">
+                <h2>${p.name}</h2>
+                <p>ID: ${p.id}</p>
+            `;
+            document.getElementById('pass-screen').classList.add('active');
+        }
+
+        function confirmIdentity() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('game-screen').classList.add('active');
+            document.getElementById('current-name').innerText = players[currentPlayerIndex].name;
+            setupGrid();
+            startTimer();
+        }
+
+        function setupGrid() {
+            const grid = document.getElementById('number-grid');
+            grid.innerHTML = '';
+            for(let i=0; i<=100; i++) {
+                let btn = document.createElement('button');
+                btn.className = 'num-btn';
+                btn.innerText = i;
+                btn.onclick = () => {
+                    alert("NUMBER " + i + " SELECTED");
+                    document.querySelectorAll('.num-btn').forEach(b => b.disabled = true);
+                    clearInterval(countdown);
+                    document.getElementById('clock-tick').pause();
+                    nextTurn();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        function startTimer() {
+            let timeLeft = 300;
+            const display = document.getElementById('timer');
+            document.getElementById('clock-tick').play();
+            countdown = setInterval(() => {
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                display.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if (--timeLeft < 0) {
+                    clearInterval(countdown);
+                    alert("TIME UP!");
+                    nextTurn();
+                }
+            }, 1000);
+        }
+
+        function nextTurn() {
+            currentPlayerIndex++;
+            if(currentPlayerIndex < players.length) {
+                showPassScreen();
+            } else {
+                alert("ROUND FINISHED. CALCULATING AVERAGE...");
+                showResults();
+            }
+        }
+
+        function showResults() {
+            // Dito lalabas yung results table base sa laro niyo
+            document.getElementById('game-screen').innerHTML = "<h1>ROUND ENDED</h1><button class='btn' onclick='location.reload()'>RESTART</button>";
+        }
+    </script>
+</body>
+</html>
